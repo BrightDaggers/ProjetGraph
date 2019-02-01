@@ -20,6 +20,6 @@ public class Graph
 	
 	public void draw (javafx.collections.ObservableList<javafx.scene.Node> list)
 	{
-		shapes.forEach((e)-> e.draw(list));
+		shapes.forEach((e)->e.draw(list));
 	}
 }
