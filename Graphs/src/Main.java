@@ -15,7 +15,9 @@ public class Main extends Application
 	{
 		graph = new Graph();
 		
-		graph.add(new Line(new Point(100,100), new Point(300,200)));
+		Line l = new Line(new Point(100,100), new Point(300,200));
+		l.addAnchorPoint(new Point(200,200));
+		graph.add(l);
 	}
 	
 	
