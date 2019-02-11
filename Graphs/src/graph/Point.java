@@ -1,12 +1,16 @@
 package graph;
 
 import javafx.beans.property.*;
+import javafx.event.EventHandler;
+import javafx.event.EventType;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 
 public class Point
 {
 	private DoubleProperty m_x;
 	private DoubleProperty m_y;
+	private boolean movable = true;
 	
 	private javafx.scene.shape.Circle m_c;
 	
@@ -44,11 +48,6 @@ public class Point
 	public void setY(double y) {m_y.set(y);}
 	
 	
-	public double distance2(double x, double y)
-	{
-		return (x()-x)*(x()-x) + (y()-y)*(y()-y);
-	}
-	
 	public void drawOnEdition (javafx.collections.ObservableList<javafx.scene.Node> list)
 	{
 		list.add(m_c);
@@ -61,4 +60,23 @@ public class Point
 	}
 	
 	public javafx.scene.shape.Circle getCircle () {return m_c;}
+	
+	public void setImmovable ()
+	{
+		if (m_c.onMouseDraggedProperty().get() != null)
+			m_c.removeEventHandler(MouseEvent.MOUSE_DRAGGED, m_c.onMouseDraggedProperty().get());
+		movable = false;
+	}
+	
+	public void setMovable ()
+	{
+		movable = true;
+	}
+	
+	void addEventHandler(EventType<MouseEvent> type, EventHandler<MouseEvent> handler)
+	{
+		if (!movable) return;
+		
+		m_c.addEventHandler(type, handler);
+	}
 }

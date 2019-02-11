@@ -7,6 +7,7 @@ import javafx.scene.input.MouseEvent;
 import graph.*;
 
 
+
 public class Main extends Application
 {
 	Graph graph;
@@ -15,8 +16,11 @@ public class Main extends Application
 	{
 		graph = new Graph();
 		
+		Point p = new Point(200,200);
 		Line l = new Line(new Point(100,100), new Point(300,200));
-		l.addAnchorPoint(new Point(200,200));
+		l.addAnchorPoint(p);
+		graph.add(l);
+		l = new Line(p, new Point(500,200));
 		graph.add(l);
 	}
 	

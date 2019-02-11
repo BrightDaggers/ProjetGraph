@@ -16,10 +16,25 @@ public class Line extends Shape
 	
 	public Line (Point p1, Point p2)
 	{
-		a = p1;
-		b = p2;
+		l = new javafx.scene.shape.Line();
+		clickBox = new javafx.scene.shape.Line();
 		
-		createLine();
+		clickBox.strokeWidthProperty().set(20.); //------------------------------------------------------- A voir -----------------------------------------------
+		clickBox.setStroke(Color.TRANSPARENT);
+		
+		
+		clickBox.addEventHandler(MouseEvent.MOUSE_PRESSED,
+				new EventHandler<MouseEvent>() {
+					@Override
+					public void handle(MouseEvent event)
+					{
+						Shape.setShapeEdition(Line.this);
+					}
+	        	}
+			);
+		
+		newPointA(p1);
+		newPointB(p2);
 	}
 	
 	
@@ -96,27 +111,8 @@ public class Line extends Shape
 					}
 				}
 		);
+		p.setImmovable();
 		anchorPoints.add(p);
-		
-		p.getCircle().addEventHandler(MouseEvent.MOUSE_DRAGGED,
-				new EventHandler<MouseEvent>() {
-					@Override
-					public void handle(MouseEvent event)
-					{
-						if (Shape.getShapeEdited() == Line.this)
-						{
-							final double dx = event.getX()-p.x();
-							final double dy = event.getY()-p.y();
-							
-							a.setX(a.x() + dx);
-							a.setY(a.y() + dy);
-							b.setX(b.x() + dx);
-							b.setY(b.y() + dy);
-						}
-					}
-	        	}
-			);
-		
 	}
 	
 	public void rmAnchorPoint (Point p)
@@ -124,52 +120,50 @@ public class Line extends Shape
 		anchorPoints.remove(p);
 	}
 	
-	
-	private void createLine()
+	public void newPointA (Point p)
 	{
-
-		l = new javafx.scene.shape.Line();
-		clickBox = new javafx.scene.shape.Line();
+		if (p == null) return;
+		
+		if (a != null   &&   a.getCircle().onMouseDraggedProperty().get() != null)
+			a.getCircle().removeEventHandler(MouseEvent.MOUSE_DRAGGED, a.getCircle().onMouseDraggedProperty().get());
+		
+		a = p;
 		
 		l.startXProperty().bind(a.xProperty());
 		l.startYProperty().bind(a.yProperty());
-		l.endXProperty().bind(b.xProperty());
-		l.endYProperty().bind(b.yProperty());
-		
 		clickBox.startXProperty().bind(a.xProperty());
 		clickBox.startYProperty().bind(a.yProperty());
-		clickBox.endXProperty().bind(b.xProperty());
-		clickBox.endYProperty().bind(b.yProperty());
 		
-		clickBox.strokeWidthProperty().set(20.); //------------------------------------------------------- A voir -----------------------------------------------
-		clickBox.setStroke(Color.TRANSPARENT);
-		
-		
-		clickBox.addEventHandler(MouseEvent.MOUSE_PRESSED,
+		a.addEventHandler(MouseEvent.MOUSE_DRAGGED,
 				new EventHandler<MouseEvent>() {
 					@Override
 					public void handle(MouseEvent event)
 					{
-						Shape.setShapeEdition(Line.this);
+						if (Shape.getShapeEdited() == Line.this)
+						{
+							a.setX(event.getX());
+							a.setY(event.getY());
+						}
 					}
 	        	}
 			);
+	}
+	
+	public void newPointB (Point p)
+	{
+		if (p == null) return;
 		
-		a.getCircle().addEventHandler(MouseEvent.MOUSE_DRAGGED,
-			new EventHandler<MouseEvent>() {
-				@Override
-				public void handle(MouseEvent event)
-				{
-					if (Shape.getShapeEdited() == Line.this)
-					{
-						a.setX(event.getX());
-						a.setY(event.getY());
-					}
-				}
-        	}
-		);
+		if (b != null   &&   b.getCircle().onMouseDraggedProperty().get() != null)
+			b.getCircle().removeEventHandler(MouseEvent.MOUSE_DRAGGED, b.getCircle().onMouseDraggedProperty().get());
 		
-		b.getCircle().addEventHandler(MouseEvent.MOUSE_DRAGGED,
+		b = p;
+		
+		l.endXProperty().bind(b.xProperty());
+		l.endYProperty().bind(b.yProperty());
+		clickBox.endXProperty().bind(b.xProperty());
+		clickBox.endYProperty().bind(b.yProperty());
+		
+		b.addEventHandler(MouseEvent.MOUSE_DRAGGED,
 				new EventHandler<MouseEvent>() {
 					@Override
 					public void handle(MouseEvent event)
