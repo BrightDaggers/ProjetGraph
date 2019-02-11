@@ -1,6 +1,5 @@
 package graph;
 
-import javafx.beans.binding.DoubleBinding;
 import javafx.event.EventHandler;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
@@ -13,19 +12,22 @@ public class Line extends Shape
 	private javafx.scene.shape.Line l;
 	private javafx.scene.shape.Line clickBox;
 	
+	private javafx.scene.shape.Circle ca;
+	private javafx.scene.shape.Circle cb;
+	
 	
 	public Line (Point p1, Point p2)
 	{
 		a = p1;
-		b = p2;
+		b = p2; //test
+	
 		
 		createLine();
 	}
 	
-	
 	public boolean isPart(Point c)
 	{
-		return a.equals(c) || b.equals(c);
+		return a.equals(c) || c.equals(c);
 	}
 	
 	
@@ -50,78 +52,15 @@ public class Line extends Shape
 	
 	public void drawOnEdition ()
 	{
-		a.drawOnEdition(m_list);
-		b.drawOnEdition(m_list);
-		
-		anchorPoints.forEach((e) -> {e.drawOnEdition(m_list);});
+		m_list.add(ca);
+		m_list.add(cb);
 	}
 	
 	
 	public void drawEndEdition ()
 	{
-		a.drawEndEdition(m_list);
-		b.drawEndEdition(m_list);
-		
-		anchorPoints.forEach((e) -> {e.drawEndEdition(m_list);});
-	}
-	
-	public void addAnchorPoint (Point p)
-	{
-		final double alpha = Math.max(0., Math.min(1., 
-				((p.x()-a.x())*(b.x()-a.x())+(p.y()-a.y())*(b.y()-a.y()))
-					/
-				((b.x()-a.x())*(b.x()-a.x())+(b.y()-a.y())*(b.y()-a.y()))
-		));
-		
-		p.xProperty().bind(
-				new DoubleBinding() {
-					{super.bind(a.xProperty(), b.xProperty());}
-					
-					@Override
-					protected double computeValue()
-					{
-						return (1-alpha)*a.x() + alpha*b.x();
-					}
-				}
-		);
-		
-		p.yProperty().bind(
-				new DoubleBinding() {
-					{super.bind(a.yProperty(), b.yProperty());}
-					
-					@Override
-					protected double computeValue()
-					{
-						return (1-alpha)*a.y() + alpha*b.y();
-					}
-				}
-		);
-		anchorPoints.add(p);
-		
-		p.getCircle().addEventHandler(MouseEvent.MOUSE_DRAGGED,
-				new EventHandler<MouseEvent>() {
-					@Override
-					public void handle(MouseEvent event)
-					{
-						if (Shape.getShapeEdited() == Line.this)
-						{
-							final double dx = event.getX()-p.x();
-							final double dy = event.getY()-p.y();
-							
-							a.setX(a.x() + dx);
-							a.setY(a.y() + dy);
-							b.setX(b.x() + dx);
-							b.setY(b.y() + dy);
-						}
-					}
-	        	}
-			);
-		
-	}
-	
-	public void rmAnchorPoint (Point p)
-	{
-		anchorPoints.remove(p);
+		m_list.remove(ca);
+		m_list.remove(cb);
 	}
 	
 	
@@ -144,18 +83,27 @@ public class Line extends Shape
 		clickBox.strokeWidthProperty().set(20.); //------------------------------------------------------- A voir -----------------------------------------------
 		clickBox.setStroke(Color.TRANSPARENT);
 		
+		ca = new javafx.scene.shape.Circle(5.);
+		cb = new javafx.scene.shape.Circle(5.);
+		
+		ca.centerXProperty().bind(a.xProperty());
+		ca.centerYProperty().bind(a.yProperty());
+		cb.centerXProperty().bind(b.xProperty());
+		cb.centerYProperty().bind(b.yProperty());
+		
 		
 		clickBox.addEventHandler(MouseEvent.MOUSE_PRESSED,
 				new EventHandler<MouseEvent>() {
 					@Override
 					public void handle(MouseEvent event)
 					{
+						
 						Shape.setShapeEdition(Line.this);
 					}
 	        	}
 			);
 		
-		a.getCircle().addEventHandler(MouseEvent.MOUSE_DRAGGED,
+		ca.addEventHandler(MouseEvent.MOUSE_DRAGGED,
 			new EventHandler<MouseEvent>() {
 				@Override
 				public void handle(MouseEvent event)
@@ -169,7 +117,7 @@ public class Line extends Shape
         	}
 		);
 		
-		b.getCircle().addEventHandler(MouseEvent.MOUSE_DRAGGED,
+		cb.addEventHandler(MouseEvent.MOUSE_DRAGGED,
 				new EventHandler<MouseEvent>() {
 					@Override
 					public void handle(MouseEvent event)

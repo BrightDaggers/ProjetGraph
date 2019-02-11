@@ -1,26 +1,17 @@
 package graph;
 
 import javafx.beans.property.*;
-import javafx.scene.paint.Color;
 
 public class Point
 {
 	private DoubleProperty m_x;
 	private DoubleProperty m_y;
 	
-	private javafx.scene.shape.Circle m_c;
-	
 	
 	public Point(float x, float y)
 	{
 		m_x = new SimpleDoubleProperty(x);
 		m_y = new SimpleDoubleProperty(y);
-		
-		m_c = new javafx.scene.shape.Circle(5.); // ---------------------------- A voir -------------------------------------
-		m_c.setFill(Color.TRANSPARENT);
-		m_c.setStroke(Color.BLACK);
-		m_c.centerXProperty().bind(m_x);
-		m_c.centerYProperty().bind(m_y);
 	}
 	
 	
@@ -48,17 +39,4 @@ public class Point
 	{
 		return (x()-x)*(x()-x) + (y()-y)*(y()-y);
 	}
-	
-	public void drawOnEdition (javafx.collections.ObservableList<javafx.scene.Node> list)
-	{
-		list.add(m_c);
-	}
-	
-	
-	public void drawEndEdition (javafx.collections.ObservableList<javafx.scene.Node> list)
-	{
-		list.remove(m_c);
-	}
-	
-	public javafx.scene.shape.Circle getCircle () {return m_c;}
 }
