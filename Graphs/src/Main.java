@@ -1,4 +1,5 @@
 import javafx.application.Application;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.event.EventHandler;
 import javafx.stage.Stage;
 import javafx.scene.*;
@@ -20,7 +21,12 @@ public class Main extends Application
 		Line l = new Line(new Point(100,100), new Point(300,200));
 		l.addAnchorPoint(p);
 		graph.add(l);
-		l = new Line(p, new Point(500,200));
+		Point p2 = new Point(500,200);
+		Rectangle r = new Rectangle(p2, new SimpleDoubleProperty(150), new SimpleDoubleProperty(100));
+		graph.add(r);
+		Point p3 = new Point(500,230);
+		r.addAnchorPoint(p3);
+		l = new Line(p, p3);
 		graph.add(l);
 	}
 	

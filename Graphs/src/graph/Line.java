@@ -13,9 +13,15 @@ public class Line extends Shape
 	private javafx.scene.shape.Line l;
 	private javafx.scene.shape.Line clickBox;
 	
+	private double mouseX;
+	private double mouseY;
+	
 	
 	public Line (Point p1, Point p2)
 	{
+		mouseX = 0;
+		mouseY = 0;
+		
 		l = new javafx.scene.shape.Line();
 		clickBox = new javafx.scene.shape.Line();
 		
@@ -29,6 +35,25 @@ public class Line extends Shape
 					public void handle(MouseEvent event)
 					{
 						Shape.setShapeEdition(Line.this);
+						mouseX = event.getX();
+						mouseY = event.getY();
+					}
+	        	}
+			);
+		
+		clickBox.addEventHandler(MouseEvent.MOUSE_DRAGGED,
+				new EventHandler<MouseEvent>() {
+					@Override
+					public void handle(MouseEvent event)
+					{
+						if (Shape.getShapeEdited() == Line.this)
+						{
+							a.set(event.getX()-mouseX+a.x(), event.getY()-mouseY+a.y());
+							b.set(event.getX()-mouseX+b.x(), event.getY()-mouseY+b.y());
+							
+							mouseX = event.getX();
+							mouseY = event.getY();
+						}
 					}
 	        	}
 			);
@@ -82,7 +107,7 @@ public class Line extends Shape
 	
 	public void addAnchorPoint (Point p)
 	{
-		final double alpha = Math.max(0., Math.min(1., 
+		final double alpha = Math.max(0., Math.min(1.,
 				((p.x()-a.x())*(b.x()-a.x())+(p.y()-a.y())*(b.y()-a.y()))
 					/
 				((b.x()-a.x())*(b.x()-a.x())+(b.y()-a.y())*(b.y()-a.y()))
@@ -111,7 +136,29 @@ public class Line extends Shape
 					}
 				}
 		);
-		p.setImmovable();
+		p.setMoveFnct(
+				(abs,ord)
+					->
+				{
+					double dx = abs.doubleValue()-p.x(),
+							dy = ord.doubleValue()-p.y();
+					
+					a.set(dx+a.x(), dy+a.y());
+					b.set(dx+b.x(), dy+b.y());
+				}
+		);
+		p.addEventHandler(MouseEvent.MOUSE_DRAGGED,
+				new EventHandler<MouseEvent>() {
+					@Override
+					public void handle(MouseEvent event)
+					{
+						if (Shape.getShapeEdited() == Line.this)
+						{
+							p.set(event.getX(), event.getY());
+						}
+					}
+	        	}
+			);
 		anchorPoints.add(p);
 	}
 	
@@ -141,8 +188,7 @@ public class Line extends Shape
 					{
 						if (Shape.getShapeEdited() == Line.this)
 						{
-							a.setX(event.getX());
-							a.setY(event.getY());
+							a.set(event.getX(), event.getY());
 						}
 					}
 	        	}
@@ -170,8 +216,7 @@ public class Line extends Shape
 					{
 						if (Shape.getShapeEdited() == Line.this)
 						{
-							b.setX(event.getX());
-							b.setY(event.getY());
+							b.set(event.getX(), event.getY());
 						}
 					}
 	        	}

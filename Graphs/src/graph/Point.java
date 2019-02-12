@@ -6,11 +6,15 @@ import javafx.event.EventType;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 
+import java.util.function.*;
+
 public class Point
 {
 	private DoubleProperty m_x;
 	private DoubleProperty m_y;
 	private boolean movable = true;
+	
+	private BiConsumer<Double, Double> f_moveTo;
 	
 	private javafx.scene.shape.Circle m_c;
 	
@@ -25,6 +29,8 @@ public class Point
 		m_c.setStroke(Color.BLACK);
 		m_c.centerXProperty().bind(m_x);
 		m_c.centerYProperty().bind(m_y);
+		
+		f_moveTo = (a,b) -> {m_x.set(a.doubleValue()); m_y.set(b.doubleValue());};
 	}
 	
 	
@@ -44,8 +50,11 @@ public class Point
 	public double y() {return m_y.get();}
 	
 	
-	public void setX(double x) {m_x.set(x);}
-	public void setY(double y) {m_y.set(y);}
+	public void setX(double x) {set(x, y());}
+	public void setY(double y) {set(x(), y);}
+	public void set(double x, double y) {f_moveTo.accept(Double.valueOf(x),Double.valueOf(y));}
+	
+	public void setMoveFnct (BiConsumer<Double, Double> fnct) {f_moveTo = fnct;}
 	
 	
 	public void drawOnEdition (javafx.collections.ObservableList<javafx.scene.Node> list)
