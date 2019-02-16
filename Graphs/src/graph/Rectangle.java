@@ -67,6 +67,12 @@ public class Rectangle extends Shape
 		genRect(p);
 	}
 	
+	public Point p1() {return p1;}
+	public double x () {return p1.x();}
+	public double y () {return p1.y();}
+	public double w () {return m_w.get();}
+	public double h () {return m_h.get();}
+	
 	
 	public void draw (javafx.collections.ObservableList<javafx.scene.Node> list)
 	{
@@ -233,9 +239,9 @@ public class Rectangle extends Shape
 		p4.xProperty().bind(Bindings.add(p1.xProperty(), m_w));
 		p4.yProperty().bind(Bindings.add(p1.yProperty(), m_h));
 		
-		p2.setMoveFnct((abs,ord) -> { m_w.set(m_w.get()+abs.doubleValue()-p2.x()); p1.setY(ord.doubleValue()); });
-		p3.setMoveFnct((abs,ord) -> { p1.setX(abs.doubleValue()); m_h.set(m_h.get()+ord.doubleValue()-p3.y()); });
-		p4.setMoveFnct((abs,ord) -> { m_w.set(m_w.get()+abs.doubleValue()-p4.x()); m_h.set(m_h.get()+ord.doubleValue()-p4.y()); });
+		p2.setMoveFnct((abs,ord) -> { m_w.set(Math.max(0,m_w.get()+abs.doubleValue()-p2.x())); p1.setY(ord.doubleValue()); });
+		p3.setMoveFnct((abs,ord) -> { p1.setX(abs.doubleValue()); m_h.set(Math.max(0,m_h.get()+ord.doubleValue()-p3.y())); });
+		p4.setMoveFnct((abs,ord) -> { m_w.set(Math.max(0,m_w.get()+abs.doubleValue()-p4.x())); m_h.set(Math.max(0,m_h.get()+ord.doubleValue()-p4.y())); });
 		
 		p1.addEventHandler(MouseEvent.MOUSE_DRAGGED,
 				new EventHandler<MouseEvent>() {

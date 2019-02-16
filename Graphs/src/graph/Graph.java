@@ -4,7 +4,7 @@ import java.util.*;
 
 public class Graph
 {
-	private ArrayList<Shape> shapes;
+	public ArrayList<Shape> shapes;
 	
 	
 	public Graph ()

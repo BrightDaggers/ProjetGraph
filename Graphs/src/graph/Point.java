@@ -19,7 +19,7 @@ public class Point
 	private javafx.scene.shape.Circle m_c;
 	
 	
-	public Point(float x, float y)
+	public Point(double x, double y)
 	{
 		m_x = new SimpleDoubleProperty(x);
 		m_y = new SimpleDoubleProperty(y);
@@ -30,7 +30,7 @@ public class Point
 		m_c.centerXProperty().bind(m_x);
 		m_c.centerYProperty().bind(m_y);
 		
-		f_moveTo = (a,b) -> {m_x.set(a.doubleValue()); m_y.set(b.doubleValue());};
+		f_moveTo = (a,b) -> {synchronized(a) {m_x.set(a.doubleValue());} synchronized(b) {m_y.set(b.doubleValue());}};
 	}
 	
 	
