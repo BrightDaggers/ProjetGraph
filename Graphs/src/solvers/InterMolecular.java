@@ -10,7 +10,7 @@ public class InterMolecular extends Solver
 	class Data
 	{
 		public Rectangle m_r;
-		public double m_x, m_y, m_vx, m_vy, m_fx, m_fy;
+		public double m_x, m_y, m_vx, m_vy, m_fx, m_fy, m_d;
 		Data(Rectangle r)
 		{
 			m_r = r;
@@ -20,6 +20,7 @@ public class InterMolecular extends Solver
 			m_vy = 0.;
 			m_fx = 0.;
 			m_fy = 0.;
+			m_d = Math.sqrt(m_r.w()*m_r.w() + m_r.h()+m_r.h());
 		}
 		
 		void update ()
@@ -33,6 +34,8 @@ public class InterMolecular extends Solver
 				m_vx = 0.;
 				m_vy = 0.;
 			}
+			if (m_r.w()*m_r.w() + m_r.h()+m_r.h() != m_d*m_d)
+				m_d = Math.sqrt(m_r.w()*m_r.w() + m_r.h()+m_r.h());
 		}
 		
 		double rX () {return m_r.x() + m_r.w()/2.;}
@@ -61,7 +64,7 @@ public class InterMolecular extends Solver
 			double x = d.m_x - m_x;
 			double y = d.m_y - m_y;
 			double r = x*x + y*y;
-			double f = Math.pow(400, 6)/Math.pow(r, 4)*(6 - 12*Math.pow(400, 6) /Math.pow(r, 3));
+			double f = Math.pow(m_d+d.m_d, 6)/Math.pow(r, 4) * (6 - 12*Math.pow(m_d+d.m_d, 6)/Math.pow(r, 3));
 			m_fx += f * x;
 			m_fy += f * y;
 		}
@@ -77,36 +80,21 @@ public class InterMolecular extends Solver
 		points = new ArrayList<>();
 		
 		m_graph.shapes.forEach(
-				(e) -> {if (e instanceof Rectangle) points.add(new Data((Rectangle)e));} );
+			(e) -> {if (e instanceof Rectangle) points.add(new Data((Rectangle)e));}
+		);
 	}
 
 	@Override
 	protected void update(double dt)
 	{
-		class BreakException extends RuntimeException
-		{}
-		
-		try
-		{
-		points.forEach((e)->{if(end) throw new BreakException(); e.update();});
+		points.forEach((e)-> {e.update();});
 		
 		points.forEach((e) ->
 			{
-				points.forEach((f) ->
-					{
-						if(end) throw new BreakException(); 
-						if (e.neq(f))
-						{
-							e.addForce(f);
-						}
-					}
-				);
+				points.forEach((f) -> {if (e.neq(f)) e.addForce(f);});
 			}
 		);
 		
-		Platform.runLater(() -> {points.forEach((e)->{e.apply(dt);});});
-		}
-		catch (BreakException e)
-		{}
+		Platform.runLater(() -> {points.forEach((e) -> {e.apply(dt);});});
 	}
 }

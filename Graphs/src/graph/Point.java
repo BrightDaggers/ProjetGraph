@@ -12,11 +12,12 @@ public class Point
 {
 	private DoubleProperty m_x;
 	private DoubleProperty m_y;
-	private boolean movable = true;
 	
 	private BiConsumer<Double, Double> f_moveTo;
 	
 	private javafx.scene.shape.Circle m_c;
+	
+	private Line m_parents;
 	
 	
 	public Point(double x, double y)
@@ -29,6 +30,8 @@ public class Point
 		m_c.setStroke(Color.BLACK);
 		m_c.centerXProperty().bind(m_x);
 		m_c.centerYProperty().bind(m_y);
+		
+		m_parents = null;
 		
 		f_moveTo = (a,b) -> {synchronized(a) {m_x.set(a.doubleValue());} synchronized(b) {m_y.set(b.doubleValue());}};
 	}
@@ -70,22 +73,18 @@ public class Point
 	
 	public javafx.scene.shape.Circle getCircle () {return m_c;}
 	
-	public void setImmovable ()
-	{
-		if (m_c.onMouseDraggedProperty().get() != null)
-			m_c.removeEventHandler(MouseEvent.MOUSE_DRAGGED, m_c.onMouseDraggedProperty().get());
-		movable = false;
-	}
-	
-	public void setMovable ()
-	{
-		movable = true;
-	}
-	
 	void addEventHandler(EventType<MouseEvent> type, EventHandler<MouseEvent> handler)
 	{
-		if (!movable) return;
-		
 		m_c.addEventHandler(type, handler);
+	}
+	
+	public void setParents(Line l)
+	{
+		m_parents = l;
+	}
+	
+	public Line getParents()
+	{
+		return m_parents;
 	}
 }

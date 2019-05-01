@@ -3,81 +3,84 @@ package graph;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.DoubleBinding;
 import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.event.EventHandler;
+import javafx.event.EventType;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 
 public class Rectangle extends Shape
 {
+	private Point center;
+	
 	private Point p1;
 	private Point p2;
 	private Point p3;
 	private Point p4;
 	
+	DoubleProperty m_theta;
 	DoubleProperty m_w;
 	DoubleProperty m_h;
 	
+	
 	private javafx.scene.shape.Rectangle r;
-	
-	private double mouseX;
-	private double mouseY;
-	
 	
 	public Rectangle (Point p, DoubleProperty width, DoubleProperty height)
 	{
-		mouseX = 0;
-		mouseY = 0;
-		
 		r = new javafx.scene.shape.Rectangle();
 		m_w = width;
 		m_h = height;
+		m_theta = new SimpleDoubleProperty(0f);
 		
 		r.setFill(Color.TRANSPARENT);
 		r.setStroke(Color.BLACK);
 		
+		genRect(p);
+	}
+	
+	
+	public Rectangle (Point p, DoubleProperty width, DoubleProperty height, DoubleProperty theta)
+	{
+		r = new javafx.scene.shape.Rectangle();
+		m_w = width;
+		m_h = height;
+		m_theta = theta;
 		
-		r.addEventHandler(MouseEvent.MOUSE_PRESSED,
-				new EventHandler<MouseEvent>() {
-					@Override
-					public void handle(MouseEvent event)
-					{
-						Shape.setShapeEdition(Rectangle.this);
-						mouseX = event.getX();
-						mouseY = event.getY();
-					}
-	        	}
-			);
-		
-		r.addEventHandler(MouseEvent.MOUSE_DRAGGED,
-				new EventHandler<MouseEvent>() {
-					@Override
-					public void handle(MouseEvent event)
-					{
-						if (Shape.getShapeEdited() == Rectangle.this)
-						{
-							p1.set(event.getX()-mouseX+p1.x(), event.getY()-mouseY+p1.y());
-							
-							mouseX = event.getX();
-							mouseY = event.getY();
-						}
-					}
-	        	}
-			);
+		r.setFill(Color.TRANSPARENT);
+		r.setStroke(Color.BLACK);
 		
 		genRect(p);
 	}
 	
+	public boolean isConnected(Rectangle r) // A faire
+	{
+		return false;
+	}
+	
+	public Point center() {return center;}
 	public Point p1() {return p1;}
+	public Point p2() {return p2;}
+	public Point p3() {return p3;}
+	public Point p4() {return p4;}
 	public double x () {return p1.x();}
 	public double y () {return p1.y();}
 	public double w () {return m_w.get();}
 	public double h () {return m_h.get();}
+	public double theta () {return m_theta.get();}
 	
+	public DoubleProperty thetaProperty () {return m_theta;}
 	
 	public void draw (javafx.collections.ObservableList<javafx.scene.Node> list)
 	{
 		m_list = list;
 		list.add(r);
+		
+		p1.drawOnEdition(m_list);
+		p2.drawOnEdition(m_list);
+		p3.drawOnEdition(m_list);
+		p4.drawOnEdition(m_list);
+		
+		anchorPoints.forEach((e) -> {e.drawOnEdition(m_list);});
 	}
 	
 	
@@ -104,8 +107,10 @@ public class Rectangle extends Shape
 	
 	public void addAnchorPoint (Point p)
 	{
-		double x = (p.x()-p1.x())/m_w.get()-.5,
-				y = (p.y()-p1.y())/m_h.get()-.5;
+		double tmpx = p.x()-center.x(),
+				tmpy = p.y()-center.y();
+		double x = (tmpx*Math.cos(m_theta.get())+tmpy*Math.sin(m_theta.get()))/m_w.get(),
+				y = (-tmpx*Math.sin(m_theta.get())+tmpy*Math.cos(m_theta.get()))/m_h.get();
 		
 		if (y<=-Math.abs(x))
 		{
@@ -113,19 +118,20 @@ public class Rectangle extends Shape
 			
 			p.xProperty().bind(
 					new DoubleBinding() {
-						{super.bind(p1.xProperty(), m_w);}
+						{super.bind(p1.xProperty(), p2.xProperty());}
 						@Override
 						protected double computeValue()
-						{ return p1.x() + alpha*m_w.get(); }
+						{ return (1-alpha)*p1.x() + alpha*p2.x(); }
 					} );
 			p.yProperty().bind(
 					new DoubleBinding() {
-						{super.bind(p1.yProperty());}
+						{super.bind(p1.yProperty(),p2.yProperty());}
 						@Override
 						protected double computeValue()
-						{ return p1.y(); }
+						{ return (1-alpha)*p1.y() + alpha*p2.y(); }
 					} );
-			p.setMoveFnct( (abs,ord) -> { p1.set(abs.doubleValue()-p.x()+p1.x(), ord.doubleValue()-p.y()+p1.y()); } );
+			p.setMoveFnct( (abs,ord) -> { center.set(abs.doubleValue()-p.x()+center.x(), ord.doubleValue()-p.y()+center.y()); } );
+			p.setParents(new Line(p1, p2));
 		}
 		else if (y>=Math.abs(x))
 		{
@@ -133,39 +139,41 @@ public class Rectangle extends Shape
 			
 			p.xProperty().bind(
 					new DoubleBinding() {
-						{super.bind(p1.xProperty(), m_w);}
+						{super.bind(p3.xProperty(), p4.xProperty());}
 						@Override
 						protected double computeValue()
-						{ return p1.x() + alpha*m_w.get(); }
+						{ return (1-alpha)*p3.x() + alpha*p4.x(); }
 					} );
 			p.yProperty().bind(
 					new DoubleBinding() {
-						{super.bind(p3.yProperty());}
+						{super.bind(p3.yProperty(), p4.yProperty());}
 						@Override
 						protected double computeValue()
-						{ return p3.y(); }
+						{ return (1-alpha)*p3.y() + alpha*p4.y(); }
 					} );
-			p.setMoveFnct( (abs,ord) -> { p1.set(abs.doubleValue()-p.x()+p1.x(), ord.doubleValue()-p.y()+p1.y()); } );
+			p.setMoveFnct( (abs,ord) -> { center.set(abs.doubleValue()-p.x()+center.x(), ord.doubleValue()-p.y()+center.y()); } );
+			p.setParents(new Line(p3, p4));
 		}
-		else if (x<Math.abs(y))
+		else if (x>Math.abs(y))
 		{
 			final double alpha = Math.max(0., Math.min(1., y+.5));
 			
 			p.xProperty().bind(
 					new DoubleBinding() {
-						{super.bind(p1.xProperty());}
+						{super.bind(p2.xProperty(), p4.xProperty());}
 						@Override
 						protected double computeValue()
-						{ return p1.x(); }
+						{ return (1-alpha)*p2.x() + alpha*p4.x(); }
 					} );
 			p.yProperty().bind(
 					new DoubleBinding() {
-						{super.bind(p1.yProperty(), m_h);}
+						{super.bind(p2.yProperty(), p4.yProperty());}
 						@Override
 						protected double computeValue()
-						{ return p1.y() + alpha*m_h.get(); }
+						{ return (1-alpha)*p2.y() + alpha*p4.y(); }
 					} );
-			p.setMoveFnct( (abs,ord) -> { p1.set(abs.doubleValue()-p.x()+p1.x(), ord.doubleValue()-p.y()+p1.y()); } );
+			p.setMoveFnct( (abs,ord) -> { center.set(abs.doubleValue()-p.x()+center.x(), ord.doubleValue()-p.y()+center.y()); } );
+			p.setParents(new Line(p2, p4));
 		}
 		else
 		{
@@ -173,34 +181,23 @@ public class Rectangle extends Shape
 			
 			p.xProperty().bind(
 					new DoubleBinding() {
-						{super.bind(p2.xProperty());}
+						{super.bind(p1.xProperty(), p3.xProperty());}
 						@Override
 						protected double computeValue()
-						{ return p2.x(); }
+						{ return (1-alpha)*p1.x() + alpha*p3.x(); }
 					} );
 			p.yProperty().bind(
 					new DoubleBinding() {
-						{super.bind(p1.yProperty(), m_h);}
+						{super.bind(p1.yProperty(), p3.yProperty());}
 						@Override
 						protected double computeValue()
-						{ return p1.y() + alpha*m_h.get(); }
+						{ return (1-alpha)*p1.y() + alpha*p3.y(); }
 					} );
-			p.setMoveFnct( (abs,ord) -> { p1.set(abs.doubleValue()-p.x()+p1.x(), ord.doubleValue()-p.y()+p1.y()); } );
+			p.setMoveFnct( (abs,ord) -> { center.set(abs.doubleValue()-p.x()+center.x(), ord.doubleValue()-p.y()+center.y()); } );
+
+			p.setParents(new Line(p1, p3));
 		}
-		
-		
-		p.addEventHandler(MouseEvent.MOUSE_DRAGGED,
-				new EventHandler<MouseEvent>() {
-					@Override
-					public void handle(MouseEvent event)
-					{
-						if (Shape.getShapeEdited() == Rectangle.this)
-						{
-							p.set(event.getX(), event.getY());
-						}
-					}
-	        	}
-			);
+
 		anchorPoints.add(p);
 	}
 	
@@ -213,83 +210,98 @@ public class Rectangle extends Shape
 	{
 		if (p == null) return;
 		
-		if (p1 != null   &&   p1.getCircle().onMouseDraggedProperty().get() != null)
-			p1.getCircle().removeEventHandler(MouseEvent.MOUSE_DRAGGED, p1.getCircle().onMouseDraggedProperty().get());
-		if (p2 != null   &&   p2.getCircle().onMouseDraggedProperty().get() != null)
-			p2.getCircle().removeEventHandler(MouseEvent.MOUSE_DRAGGED, p2.getCircle().onMouseDraggedProperty().get());
-		if (p3 != null   &&   p3.getCircle().onMouseDraggedProperty().get() != null)
-			p3.getCircle().removeEventHandler(MouseEvent.MOUSE_DRAGGED, p3.getCircle().onMouseDraggedProperty().get());
-		if (p4 != null   &&   p4.getCircle().onMouseDraggedProperty().get() != null)
-			p4.getCircle().removeEventHandler(MouseEvent.MOUSE_DRAGGED, p4.getCircle().onMouseDraggedProperty().get());
+		center = p;
 		
-		p1 = p;
+		p1 = new Point(0,0);
 		p2 = new Point(0,0);
 		p3 = new Point(0,0);
 		p4 = new Point(0,0);
 		
-		r.xProperty().bind(p1.xProperty());
-		r.yProperty().bind(p1.yProperty());
+		r.xProperty().bind(new DoubleBinding() {
+			{super.bind(center.xProperty(),m_w);}
+			@Override
+			protected double computeValue()
+				{return center.x()-m_w.get()/2;}
+		});
+		r.yProperty().bind(new DoubleBinding() {
+			{super.bind(center.yProperty(),m_h);}
+			@Override
+			protected double computeValue()
+				{return center.y()-m_h.get()/2;}
+		});
+		
 		r.widthProperty().bind(m_w);
-		r.heightProperty().bind(m_h);;
+		r.heightProperty().bind(m_h);
+		r.rotateProperty().bind(Bindings.multiply(m_theta,180/Math.PI));
 		
-		p2.xProperty().bind(Bindings.add(p1.xProperty(), m_w));
-		p2.yProperty().bind(p1.yProperty());
-		p3.xProperty().bind(p1.xProperty());
-		p3.yProperty().bind(Bindings.add(p1.yProperty(), m_h));
-		p4.xProperty().bind(Bindings.add(p1.xProperty(), m_w));
-		p4.yProperty().bind(Bindings.add(p1.yProperty(), m_h));
-		
-		p2.setMoveFnct((abs,ord) -> { m_w.set(Math.max(0,m_w.get()+abs.doubleValue()-p2.x())); p1.setY(ord.doubleValue()); });
-		p3.setMoveFnct((abs,ord) -> { p1.setX(abs.doubleValue()); m_h.set(Math.max(0,m_h.get()+ord.doubleValue()-p3.y())); });
-		p4.setMoveFnct((abs,ord) -> { m_w.set(Math.max(0,m_w.get()+abs.doubleValue()-p4.x())); m_h.set(Math.max(0,m_h.get()+ord.doubleValue()-p4.y())); });
-		
-		p1.addEventHandler(MouseEvent.MOUSE_DRAGGED,
-				new EventHandler<MouseEvent>() {
-					@Override
-					public void handle(MouseEvent event)
-					{
-						if (Shape.getShapeEdited() == Rectangle.this)
-						{
-							p1.set(event.getX(), event.getY());
-						}
-					}
-	        	}
-			);
-		p2.addEventHandler(MouseEvent.MOUSE_DRAGGED,
-				new EventHandler<MouseEvent>() {
+		// p1
+		p1.xProperty().bind(new DoubleBinding() {
+			{super.bind(center.xProperty(),m_w,m_h,m_theta);}
 			@Override
-			public void handle(MouseEvent event)
-			{
-				if (Shape.getShapeEdited() == Rectangle.this)
-				{
-					p2.set(event.getX(), event.getY());
-				}
-			}
-		}
-				);
-		p3.addEventHandler(MouseEvent.MOUSE_DRAGGED,
-				new EventHandler<MouseEvent>() {
+			protected double computeValue()
+				{return center.x()+(-m_w.get()*Math.cos(m_theta.get())+m_h.get()*Math.sin(m_theta.get()))/2;}
+		});
+		p1.yProperty().bind(new DoubleBinding() {
+			{super.bind(center.yProperty(),m_w,m_h,m_theta);}
 			@Override
-			public void handle(MouseEvent event)
-			{
-				if (Shape.getShapeEdited() == Rectangle.this)
-				{
-					p3.set(event.getX(), event.getY());
-				}
-			}
-		}
-				);
-		p4.addEventHandler(MouseEvent.MOUSE_DRAGGED,
-				new EventHandler<MouseEvent>() {
+			protected double computeValue()
+				{return center.y()+(-m_h.get()*Math.cos(m_theta.get())-m_w.get()*Math.sin(m_theta.get()))/2;}
+		});
+		// p2
+		p2.xProperty().bind(new DoubleBinding() {
+			{super.bind(center.xProperty(),m_w,m_h,m_theta);}
 			@Override
-			public void handle(MouseEvent event)
-			{
-				if (Shape.getShapeEdited() == Rectangle.this)
-				{
-					p4.set(event.getX(), event.getY());
-				}
-			}
-		}
-				);
+			protected double computeValue()
+				{return center.x()+(m_w.get()*Math.cos(m_theta.get())+m_h.get()*Math.sin(m_theta.get()))/2;}
+		});
+		p2.yProperty().bind(new DoubleBinding() {
+			{super.bind(center.yProperty(),m_w,m_h,m_theta);}
+			@Override
+			protected double computeValue()
+				{return center.y()+(-m_h.get()*Math.cos(m_theta.get())+m_w.get()*Math.sin(m_theta.get()))/2;}
+		});
+		// p3
+		p3.xProperty().bind(new DoubleBinding() {
+			{super.bind(center.xProperty(),m_w,m_h,m_theta);}
+			@Override
+			protected double computeValue()
+				{return center.x()+(-m_w.get()*Math.cos(m_theta.get())-m_h.get()*Math.sin(m_theta.get()))/2;}
+		});
+		p3.yProperty().bind(new DoubleBinding() {
+			{super.bind(center.yProperty(),m_w,m_h,m_theta);}
+			@Override
+			protected double computeValue()
+				{return center.y()+(m_h.get()*Math.cos(m_theta.get())-m_w.get()*Math.sin(m_theta.get()))/2;}
+		});
+		// p4
+		p4.xProperty().bind(new DoubleBinding() {
+			{super.bind(center.xProperty(),m_w,m_h,m_theta);}
+			@Override
+			protected double computeValue()
+				{return center.x()+(m_w.get()*Math.cos(m_theta.get())-m_h.get()*Math.sin(m_theta.get()))/2;}
+		});
+		p4.yProperty().bind(new DoubleBinding() {
+			{super.bind(center.yProperty(),m_w,m_h,m_theta);}
+			@Override
+			protected double computeValue()
+				{return center.y()+(m_h.get()*Math.cos(m_theta.get())+m_w.get()*Math.sin(m_theta.get()))/2;}
+		});
+
+		p1.setMoveFnct((abs,ord) -> {center.setX(abs.doubleValue()); center.setY(ord.doubleValue());});
+		p2.setMoveFnct((abs,ord) -> {center.setX(abs.doubleValue()); center.setY(ord.doubleValue());});
+		p3.setMoveFnct((abs,ord) -> {center.setX(abs.doubleValue()); center.setY(ord.doubleValue());});
+		p4.setMoveFnct((abs,ord) -> {center.setX(abs.doubleValue()); center.setY(ord.doubleValue());});
+	}
+	
+	@Override
+	public void addEventHandler(EventType<MouseEvent> type, EventHandler<MouseEvent> handler)
+	{
+		r.addEventHandler(type, handler);
+	}
+	
+	@Override
+	public void setFill (Color color)
+	{
+		r.setFill(color);
 	}
 }

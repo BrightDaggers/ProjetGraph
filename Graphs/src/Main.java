@@ -6,7 +6,7 @@ import javafx.scene.*;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
-
+import javafx.scene.paint.Color;
 import graph.*;
 import solvers.*;
 
@@ -15,11 +15,13 @@ import solvers.*;
 public class Main extends Application
 {
 	Graph graph;
-	InterMolecular solver;
+	Solver solver;
 	Thread t;
 	
+	boolean color = false;
+	
 	public Main ()
-	{
+	{		
 		graph = new Graph();
 		
 		Point p1 = new Point(200,100);
@@ -28,7 +30,7 @@ public class Main extends Application
 		Point p4 = new Point(300,500);
 		Point p5 = new Point(600,400);
 		
-		Rectangle r1 = new Rectangle(p1, new SimpleDoubleProperty(130), new SimpleDoubleProperty(100));
+		Rectangle r1 = new Rectangle(p1, new SimpleDoubleProperty(130), new SimpleDoubleProperty(100), new SimpleDoubleProperty(0.3));
 		Rectangle r2 = new Rectangle(p2, new SimpleDoubleProperty(150), new SimpleDoubleProperty(100));
 		Rectangle r3 = new Rectangle(p3, new SimpleDoubleProperty(100), new SimpleDoubleProperty(100));
 		Rectangle r4 = new Rectangle(p4, new SimpleDoubleProperty(90), new SimpleDoubleProperty(70));
@@ -40,9 +42,10 @@ public class Main extends Application
 		graph.add(r4);
 		graph.add(r5);
 		
-		Point a = new Point(330,150);
+		double x=100, y=300;
+		Point a = new Point(x,y);
 		r1.addAnchorPoint(a);
-		Point b = new Point(600,150);
+		Point b = new Point(x,y);
 		r2.addAnchorPoint(b);
 		Line l = new Line(a,b);
 		graph.add(l);
@@ -55,7 +58,7 @@ public class Main extends Application
 		
 		a = new Point(240,200);
 		r1.addAnchorPoint(a);
-		b = new Point(150,300);
+		b = new Point(400,400);
 		r3.addAnchorPoint(b);
 		graph.add(new Line(a,b));
 		
@@ -83,8 +86,24 @@ public class Main extends Application
 		r5.addAnchorPoint(b);
 		graph.add(new Line(a,b));
 		
+		r1.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
+			@Override
+			public void handle(MouseEvent event) {
+				if(color)
+					r1.setFill(Color.TRANSPARENT);
+				else
+					r1.setFill(Color.DARKORCHID);
+				color = !color;
+			}});
 		
-		solver = new InterMolecular(graph);
+		/*FnctPRALC f = new FnctPRALC(graph);
+		long time = System.currentTimeMillis();
+		for (int i=0; i<1000; i++)
+			f.calc();
+		System.out.println("Time : "+ ((System.currentTimeMillis()-time)/1000./1000.));
+			4.1e-5 s
+		*/
+		solver = new GradientDescent(graph, 0.03, new FnctPRALC(graph));//new InterMolecular(graph);
 		t = new Thread(solver);
 		t.start();
 	}
@@ -103,27 +122,8 @@ public class Main extends Application
 		
 		Group root = new Group();
 		graph.draw(root.getChildren());
-		
-		/*Canvas canvas = new Canvas(800,600);
-		GraphicsContext gc = canvas.getGraphicsContext2D();*/
-		
-		
+				
 		Scene s = new Scene(root, 800, 600);
-		s.addEventFilter(MouseEvent.MOUSE_PRESSED, new EventHandler<MouseEvent>()
-			{
-				@Override
-				public void handle(MouseEvent e) {
-					
-					if (e.isPrimaryButtonDown())
-					{
-						if (!(e.getTarget() instanceof javafx.scene.shape.Shape))
-							Shape.setShapeEdition(null);
-					}
-					else if(e.isSecondaryButtonDown())
-						e.consume();
-						// open edition menu
-				}
-			});
 		
 		s.addEventFilter(KeyEvent.KEY_PRESSED, new EventHandler<KeyEvent>()
 		{
@@ -144,9 +144,10 @@ public class Main extends Application
 		pStage.show();
 	}
 	
+	
 	@Override
 	public void stop ()
 	{
-		solver.end();
+		//solver.end();
 	}
 }
