@@ -4,12 +4,29 @@ import graph.*;
 
 public class Helper
 {
-	public static double isCrossing (Line l1, Line l2)
+	public static class Vec2
+	{
+		public double x,y;
+		
+		public Vec2(double x, double y) {this.x = x; this.y = y;}
+		public Vec2(Point p) {x=p.x(); y=p.y();}
+		public Vec2 add(Vec2 v) {x+=v.x; y+= v.y; return this;}
+		public Vec2 sub(Vec2 v) {x-=v.x; y-= v.y; return this;}
+		public Vec2 mult(double a) {x*=a; y*=a; return this;}
+		public Vec2 inv() {x=-x; y=-y; return this;}
+		public Vec2 normalize() {double l = Math.sqrt(x*x+y*y); x/=l; y/=l; return this;}
+		public double dot(Vec2 v) {return x*v.x + y*v.y;}
+		public double len() {return Math.sqrt(x*x+y*y);}
+		public Vec2 normal() {return new Vec2(y, -x);}
+	}
+	
+	
+	public static Vec2 isCrossing (Line l1, Line l2)
 	{
 		return isCrossing (l1.p1(), l1.p2(), l2.p1(), l2.p2());
 	}
 	
-	public static double isCrossing (Point p11, Point p12, Point p21, Point p22)
+	public static Vec2 isCrossing (Point p11, Point p12, Point p21, Point p22)
 	{
 		return isCrossing (p11.x(), p11.y(), p12.x(), p12.y(), p21.x(), p21.y(), p22.x(), p22.y());
 	}
@@ -29,7 +46,7 @@ public class Helper
 		return (x<=1 || y<=1) && (y>=0 || x>=0)? 0 : Math.min(1, Math.max(x,y)) - Math.max(0, Math.min(x,y));
 	}
 	
-	public static double isCrossing (double x11, double y11, double x12, double y12, double x21, double y21, double x22, double y22)
+	public static Vec2 isCrossing (double x11, double y11, double x12, double y12, double x21, double y21, double x22, double y22)
 	{
 		double dx1 = x12-x11;
 		double dx2 = x22-x21;
@@ -39,7 +56,7 @@ public class Helper
 		// test singularité
 		if (dx1==0 && dx2==0 && dy1==0 && dy2==0)
 		{
-			return (x11==x21 && y11==y21)? 1 : 0;
+			return (x11==x21 && y11==y21)? new Vec2(1,0) : new Vec2(0,0);
 		}
 		else if (dx1==0 && dy1==0)
 		{
@@ -48,10 +65,10 @@ public class Helper
 			if (a==0)
 			{
 				double alpha = dx2==0 ? (y11-y21)/dy2 : (x11-x21)/dx2;
-				return fnct1(alpha);
+				return new Vec2(dx2, dy2).normal().normalize().mult(fnct1(alpha));
 			}
 			else
-				return 0;
+				return new Vec2(0,0);
 		}
 		else if (dx2==0 && dy2==0)
 		{
@@ -59,10 +76,10 @@ public class Helper
 			if (b==0)
 			{
 				double alpha = dx1==0 ? (y21-y11)/dy1 : (x21-x11)/dx1;
-				return fnct1(alpha);
+				return new Vec2(dx1, dy1).normal().normalize().mult(fnct1(alpha));
 			}
 			else
-				return 0;
+				return new Vec2(0,0);
 		}
 		
 		
@@ -77,23 +94,23 @@ public class Helper
 				double alpha = dx1==0 ? (y21-y11)/dy1 : (x21-x11)/dx1;
 				double gamma = dx1==0 ? dy2/dy1 : dx2/dx1;
 				
-				return fnct2(alpha, gamma+alpha);//(alpha<=1 || gamma+alpha<=1) && (gamma+alpha>=0 || alpha>=0);
+				return new Vec2(dx1,dy1).normal().normalize().mult(fnct2(alpha, gamma+alpha));//fnct2(alpha, gamma+alpha);//(alpha<=1 || gamma+alpha<=1) && (gamma+alpha>=0 || alpha>=0);
 			}
 			else
 			{
-				return 0;
+				return new Vec2(0,0);
 			}
 		}
 		
 		double t1 = a/det;
 		double t2 = b/det;
 		
-		return fnct1(t1,t2);
+		return new Vec2(y11-x11, y21-x21).normal().normalize().mult(fnct1(t1,t2));//fnct1(t1,t2);
 	}
 	
 	public static double angle(Line l1, Line l2)
 	{
-		double x1 = l1.p2().x() - l1.p1().x(),
+		double	x1 = l1.p2().x() - l1.p1().x(),
 				y1 = l1.p2().y() - l1.p1().y(),
 				x2 = l2.p2().x() - l2.p1().x(),
 				y2 = l2.p2().y() - l2.p1().y();
@@ -113,26 +130,10 @@ public class Helper
 	
 	public static double normalizeAngle (double angle)
 	{
+		// res in ]-PI; PI]
 		double res = angle - 2*Math.PI * Math.floor(angle/Math.PI);
 		
 		return res<-Math.PI? res+2*Math.PI : res>Math.PI? res-2*Math.PI : res;
-	}
-	
-	
-	public static class Vec2
-	{
-		public double x,y;
-		
-		public Vec2(double x, double y) {this.x = x; this.y = y;}
-		public Vec2(Point p) {x=p.x(); y=p.y();}
-		public Vec2 add(Vec2 v) {x+=v.x; y+= v.y; return this;}
-		public Vec2 sub(Vec2 v) {x-=v.x; y-= v.y; return this;}
-		public Vec2 mult(double a) {x*=a; y*=a; return this;}
-		public Vec2 inv() {x=-x; y=-y; return this;}
-		public Vec2 normalize() {double l = Math.sqrt(x*x+y*y); x/=l; y/=l; return this;}
-		public double dot(Vec2 v) {return x*v.x + y*v.y;}
-		public double len() {return Math.sqrt(x*x+y*y);}
-		public Vec2 normal() {return new Vec2(-y, x);}
 	}
 	
 	public static double penetration(Vec2 n, Rectangle r, Vec2 pt)

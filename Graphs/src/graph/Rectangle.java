@@ -104,99 +104,49 @@ public class Rectangle extends Shape
 		
 		anchorPoints.forEach((e) -> {e.drawEndEdition(m_list);});
 	}
-	
-	public void addAnchorPoint (Point p)
-	{
-		double tmpx = p.x()-center.x(),
-				tmpy = p.y()-center.y();
-		double x = (tmpx*Math.cos(m_theta.get())+tmpy*Math.sin(m_theta.get()))/m_w.get(),
-				y = (-tmpx*Math.sin(m_theta.get())+tmpy*Math.cos(m_theta.get()))/m_h.get();
-		
-		if (y<=-Math.abs(x))
-		{
-			final double alpha = Math.max(0., Math.min(1., x+.5));
-			
-			p.xProperty().bind(
-					new DoubleBinding() {
-						{super.bind(p1.xProperty(), p2.xProperty());}
-						@Override
-						protected double computeValue()
-						{ return (1-alpha)*p1.x() + alpha*p2.x(); }
-					} );
-			p.yProperty().bind(
-					new DoubleBinding() {
-						{super.bind(p1.yProperty(),p2.yProperty());}
-						@Override
-						protected double computeValue()
-						{ return (1-alpha)*p1.y() + alpha*p2.y(); }
-					} );
-			p.setMoveFnct( (abs,ord) -> { center.set(abs.doubleValue()-p.x()+center.x(), ord.doubleValue()-p.y()+center.y()); } );
-			p.setParents(new Line(p1, p2));
-		}
-		else if (y>=Math.abs(x))
-		{
-			final double alpha = Math.max(0., Math.min(1., x+.5));
-			
-			p.xProperty().bind(
-					new DoubleBinding() {
-						{super.bind(p3.xProperty(), p4.xProperty());}
-						@Override
-						protected double computeValue()
-						{ return (1-alpha)*p3.x() + alpha*p4.x(); }
-					} );
-			p.yProperty().bind(
-					new DoubleBinding() {
-						{super.bind(p3.yProperty(), p4.yProperty());}
-						@Override
-						protected double computeValue()
-						{ return (1-alpha)*p3.y() + alpha*p4.y(); }
-					} );
-			p.setMoveFnct( (abs,ord) -> { center.set(abs.doubleValue()-p.x()+center.x(), ord.doubleValue()-p.y()+center.y()); } );
-			p.setParents(new Line(p3, p4));
-		}
-		else if (x>Math.abs(y))
-		{
-			final double alpha = Math.max(0., Math.min(1., y+.5));
-			
-			p.xProperty().bind(
-					new DoubleBinding() {
-						{super.bind(p2.xProperty(), p4.xProperty());}
-						@Override
-						protected double computeValue()
-						{ return (1-alpha)*p2.x() + alpha*p4.x(); }
-					} );
-			p.yProperty().bind(
-					new DoubleBinding() {
-						{super.bind(p2.yProperty(), p4.yProperty());}
-						@Override
-						protected double computeValue()
-						{ return (1-alpha)*p2.y() + alpha*p4.y(); }
-					} );
-			p.setMoveFnct( (abs,ord) -> { center.set(abs.doubleValue()-p.x()+center.x(), ord.doubleValue()-p.y()+center.y()); } );
-			p.setParents(new Line(p2, p4));
-		}
-		else
-		{
-			final double alpha = Math.max(0., Math.min(1., y+.5));
-			
-			p.xProperty().bind(
-					new DoubleBinding() {
-						{super.bind(p1.xProperty(), p3.xProperty());}
-						@Override
-						protected double computeValue()
-						{ return (1-alpha)*p1.x() + alpha*p3.x(); }
-					} );
-			p.yProperty().bind(
-					new DoubleBinding() {
-						{super.bind(p1.yProperty(), p3.yProperty());}
-						@Override
-						protected double computeValue()
-						{ return (1-alpha)*p1.y() + alpha*p3.y(); }
-					} );
-			p.setMoveFnct( (abs,ord) -> { center.set(abs.doubleValue()-p.x()+center.x(), ord.doubleValue()-p.y()+center.y()); } );
 
-			p.setParents(new Line(p1, p3));
-		}
+	@Override
+	public void addAnchorPoint(Point p)
+	{
+		Point ref = new Point(p.x(), p.y());
+		addAnchorPoint(p, ref);
+	}
+	
+	public void addAnchorPoint (Point p, Point ref)
+	{
+		DoubleBinding mp = new DoubleBinding() {
+			{super.bind(center.xProperty(), center.yProperty(), ref.xProperty(), ref.xProperty(), m_w, m_h, m_theta);}
+			@Override
+			protected double computeValue()
+			{
+				double x = (ref.x()-center.x())*Math.cos(m_theta.get()) + (ref.y()-center.y())*Math.sin(m_theta.get());
+				double y = -(ref.x()-center.x())*Math.sin(m_theta.get()) + (ref.y()-center.y())*Math.cos(m_theta.get());
+				
+				return 2*Math.max(Math.abs(x/m_w.get()), Math.abs(y/m_h.get()));
+			}
+		};
+		
+		
+		p.xProperty().bind(
+				new DoubleBinding() {
+					{super.bind(center.xProperty(), ref.xProperty(), mp);}
+					@Override
+					protected double computeValue()
+					{
+						return (ref.x()-center.x())/mp.get() + center.x();
+					}
+				} );
+		p.yProperty().bind(
+				new DoubleBinding() {
+					{super.bind(center.yProperty(), ref.yProperty(), mp);}
+					@Override
+					protected double computeValue()
+					{
+						return (ref.y()-center.y())/mp.get() + center.y();
+					}
+				} );
+		p.setMoveFnct( (abs,ord) -> { center.set(abs.doubleValue()-p.x()+center.x(), ord.doubleValue()-p.y()+center.y()); } );
+		//p.setParent(new Line());
 
 		anchorPoints.add(p);
 	}

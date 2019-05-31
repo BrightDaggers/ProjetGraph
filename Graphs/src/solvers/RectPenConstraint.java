@@ -17,11 +17,13 @@ public class RectPenConstraint extends Constraint
 		public DRect(Rectangle r) {this.r=r; dx=0; dy=0;}
 	}
 	ArrayList<DRect> rects;
+	double lambda;
 	
 	
-	public RectPenConstraint (Graph graph)
+	public RectPenConstraint (Graph graph, double lambda)
 	{
 		rects = new ArrayList<>();
+		this.lambda = lambda;
 		
 		for (Shape s : graph.shapes)
 		{
@@ -49,17 +51,16 @@ public class RectPenConstraint extends Constraint
 				if (!r2.equals(r))
 				{
 					Helper.Vec2 v = Helper.interpenetration(r.r, r2.r);
-					r.dx += v.x;
-					r.dy += v.y;
-					r2.dx -= v.x;
-					r2.dy -= v.y;
+					r.dx += lambda*v.x/2;
+					r.dy += lambda*v.y/2;
+					r2.dx -= lambda*v.x/2;
+					r2.dy -= lambda*v.y/2;
 					
-					gradmax = Math.max(gradmax, Math.max(Math.abs(v.x), Math.abs(v.y)));
+					gradmax = Math.max(gradmax, v.x*v.x + v.y*v.y);
 				}
 			}
 		}
-		
-		return gradmax;
+		return lambda*Math.sqrt(gradmax);
 	}
 
 	@Override

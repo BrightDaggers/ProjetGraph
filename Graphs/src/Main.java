@@ -25,7 +25,7 @@ public class Main extends Application
 		graph = new Graph();
 		
 		Point p1 = new Point(200,100);
-		Point p2 = new Point(600,100);
+		Point p2 = new Point(500,100);
 		Point p3 = new Point(100,300);
 		Point p4 = new Point(300,500);
 		Point p5 = new Point(600,400);
@@ -42,48 +42,47 @@ public class Main extends Application
 		graph.add(r4);
 		graph.add(r5);
 		
-		double x=100, y=300;
-		Point a = new Point(x,y);
-		r1.addAnchorPoint(a);
-		Point b = new Point(x,y);
-		r2.addAnchorPoint(b);
+		Point a = new Point(0,0);
+		r1.addAnchorPoint(a,r2.center());
+		Point b = new Point(0,0);
+		r2.addAnchorPoint(b,r1.center());
 		Line l = new Line(a,b);
 		graph.add(l);
 		
 		a = new Point(500,150);
-		l.addAnchorPoint(a);
-		b = new Point(200,350);
-		r3.addAnchorPoint(b);
+		l.addAnchorPoint(a,.5);
+		b = new Point(0,0);
+		r3.addAnchorPoint(b,a);
 		graph.add(new Line(a,b));
 		
-		a = new Point(240,200);
-		r1.addAnchorPoint(a);
-		b = new Point(400,400);
-		r3.addAnchorPoint(b);
+		a = new Point(0,0);
+		r1.addAnchorPoint(a, r3.center());
+		b = new Point(0,0);
+		r3.addAnchorPoint(b, r1.center());
 		graph.add(new Line(a,b));
 		
-		a = new Point(300,530);
-		r4.addAnchorPoint(a);
-		b = new Point(170,400);
-		r3.addAnchorPoint(b);
+		a = new Point(0,0);
+		r4.addAnchorPoint(a,r3.center());
+		b = new Point(0,0);
+		r3.addAnchorPoint(b,r4.center());
 		graph.add(new Line(a,b));
 		
-		a = new Point(290,200);
-		r1.addAnchorPoint(a);
-		b = new Point(320,500);
-		r4.addAnchorPoint(b);
+		a = new Point(0,0);
+		r1.addAnchorPoint(a,r4.center());
+		b = new Point(0,0);
+		r4.addAnchorPoint(b,r1.center());
 		graph.add(new Line(a,b));
 		
-		a = new Point(390,530);
-		r4.addAnchorPoint(a);
-		b = new Point(600,450);
-		r5.addAnchorPoint(b);
+		a = new Point(0,0);
+		r4.addAnchorPoint(a,r5.center());
+		b = new Point(0,0);
+		r5.addAnchorPoint(b,r4.center());
 		graph.add(new Line(a,b));
 		
-		a = new Point(680,200);
-		r2.addAnchorPoint(a);
-		b = new Point(655,400);
-		r5.addAnchorPoint(b);
+		a = new Point(0,0);
+		r2.addAnchorPoint(a,r5.center());
+		b = new Point(0,0);
+		r5.addAnchorPoint(b,r2.center());
 		graph.add(new Line(a,b));
 		
 		r1.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
@@ -96,14 +95,10 @@ public class Main extends Application
 				color = !color;
 			}});
 		
-		/*FnctPRALC f = new FnctPRALC(graph);
-		long time = System.currentTimeMillis();
-		for (int i=0; i<1000; i++)
-			f.calc();
-		System.out.println("Time : "+ ((System.currentTimeMillis()-time)/1000./1000.));
-			4.1e-5 s
-		*/
-		solver = new GradientDescent(graph, 0.03, new FnctPRALC(graph));//new InterMolecular(graph);
+		solver = new GradientDescent(graph, 0.1);//new InterMolecular(graph);
+		//((GradientDescent)solver).addConstraint(new RectPenConstraint(graph,5));
+		//((GradientDescent)solver).addConstraint(new LineLenConstraint(graph,1));
+		((GradientDescent)solver).addConstraint(new RectRotConstraint(graph,1));
 		t = new Thread(solver);
 		t.start();
 	}
@@ -148,6 +143,6 @@ public class Main extends Application
 	@Override
 	public void stop ()
 	{
-		//solver.end();
+		solver.end();
 	}
 }

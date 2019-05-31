@@ -66,7 +66,7 @@ public class FnctPRALC extends FitnessFnct// Positions, Rotations, Angles, Lengt
 			{
 				if (!l.equals(l2))
 				{
-					value += Helper.isCrossing(l, l2);
+					value += Helper.isCrossing(l, l2).len();
 				}
 			}
 		}

@@ -81,6 +81,11 @@ public class Line extends Shape
 				((b.x()-a.x())*(b.x()-a.x())+(b.y()-a.y())*(b.y()-a.y()))
 		));
 		
+		addAnchorPoint(p, alpha);
+	}
+	
+	public void addAnchorPoint (Point p, double alpha)
+	{		
 		p.xProperty().bind(
 				new DoubleBinding() {
 					{super.bind(a.xProperty(), b.xProperty());}
