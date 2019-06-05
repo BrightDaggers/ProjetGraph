@@ -27,6 +27,7 @@ public class Rectangle extends Shape
 	
 	public Rectangle (Point p, DoubleProperty width, DoubleProperty height)
 	{
+		super(FLAGS.SHAPE);
 		r = new javafx.scene.shape.Rectangle();
 		m_w = width;
 		m_h = height;
@@ -41,6 +42,7 @@ public class Rectangle extends Shape
 	
 	public Rectangle (Point p, DoubleProperty width, DoubleProperty height, DoubleProperty theta)
 	{
+		super(FLAGS.SHAPE);
 		r = new javafx.scene.shape.Rectangle();
 		m_w = width;
 		m_h = height;

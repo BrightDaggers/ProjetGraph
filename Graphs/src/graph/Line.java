@@ -17,6 +17,7 @@ public class Line extends Shape
 	
 	public Line (Point p1, Point p2)
 	{
+		super(FLAGS.CONNECTOR);
 		l = new javafx.scene.shape.Line();
 		clickBox = new javafx.scene.shape.Line();
 		

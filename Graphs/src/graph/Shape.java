@@ -9,8 +9,17 @@ import javafx.scene.paint.Color;
 
 public abstract class Shape
 {
-	// static shape being edited
-	// callback to this shape when click outside
+	public enum FLAGS
+	{
+		CONNECTOR, SHAPE
+	}
+	
+	public final FLAGS flag;
+	
+	public Shape(FLAGS flag)
+	{
+		this.flag = flag;
+	}
 	
 	protected javafx.collections.ObservableList<javafx.scene.Node> m_list;
 	protected ArrayList<Point> anchorPoints = new ArrayList<>();

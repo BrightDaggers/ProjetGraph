@@ -3,7 +3,7 @@ package solvers;
 import graph.*;
 
 public class Helper
-{
+{	
 	public static class Vec2
 	{
 		public double x,y;
@@ -16,8 +16,10 @@ public class Helper
 		public Vec2 inv() {x=-x; y=-y; return this;}
 		public Vec2 normalize() {double l = Math.sqrt(x*x+y*y); x/=l; y/=l; return this;}
 		public double dot(Vec2 v) {return x*v.x + y*v.y;}
+		public double vect(Vec2 v) {return x*v.y - y*v.x;}
 		public double len() {return Math.sqrt(x*x+y*y);}
 		public Vec2 normal() {return new Vec2(y, -x);}
+		public boolean isnull() {return x==0 && y==0;}
 	}
 	
 	
@@ -195,5 +197,107 @@ public class Helper
 		{
 			return nmax2.mult(-Math.min(0, penetration(nmax2,r1,new Vec2(pmax2))));
 		}
+	}
+	
+	public static boolean crossingRL(Rectangle r, Line l)
+	{
+		return crossingRL(r.x(), r.y(), r.w(), r.h(), r.theta(), l.p1().x(), l.p1().y(), l.p2().x()-l.p1().x(), l.p2().y()-l.p1().y());
+	}
+	
+	public static boolean isIn (double t, double t1, double t2)
+	{
+		return t>=t1 && t<=t2;
+	}
+	
+	public static boolean intersect (double t1, double t2, double t1p, double t2p)
+	{
+		return t2>=t1p && t2p>=t1;
+	}
+	
+	public static boolean crossingRL (double x, double y, double w, double h, double theta, double xl, double yl, double wl, double hl)
+	{
+		Vec2 p = new Vec2(xl, yl).sub(new Vec2 (x, y));
+		Vec2 v = new Vec2(wl, hl);
+		Vec2 v1 = new Vec2(w*Math.cos(theta), -w*Math.sin(theta));
+		Vec2 v2 = new Vec2(h*Math.sin(theta), h*Math.cos(theta));
+		
+		if (v.isnull())
+			return p.x<v1.x/2+v2.x/2 && p.x>-v1.x/2-v2.x/2 && p.y>-v1.y/2-v2.y/2 && p.y<v1.y/2+v2.y/2;
+		
+		if (v1.isnull())
+			return !isCrossing(x, y, v2.x, v2.y, xl, yl, wl, hl).isnull();
+		if (v2.isnull())
+			return !isCrossing(x, y, v1.x, v1.y, xl, yl, wl, hl).isnull();
+		
+		if (v.vect(v1)==0)
+		{
+			double t2 = p.vect(v) / v2.vect(v);
+			if (!isIn(t2,0,1))
+				return false;
+			
+			double l1 = v1.vect(v2);
+			double l2 = v2.vect(v);
+			
+			if (l1>=0)
+			{
+				if (l2>=0)
+					return isIn(p.vect(v2), 0, l2+l1);
+				else
+					return isIn(p.vect(v2), l2, l1);
+			}
+			else
+			{
+				if (l2>=0)
+					return isIn(p.vect(v2), l1, l2);
+				else
+					return isIn(p.vect(v2), l2+l1, 0);
+			}
+		}
+		
+		if (v.vect(v2)==0)
+		{
+			double t2 = p.vect(v) / v1.vect(v);
+			if (!isIn(t2,0,1))
+				return false;
+			
+			double l1 = v2.vect(v1);
+			double l2 = v1.vect(v);
+			
+			if (l1>=0)
+			{
+				if (l2>=0)
+					return isIn(p.vect(v1), 0, l2+l1);
+				else
+					return isIn(p.vect(v1), l2, l1);
+			}
+			else
+			{
+				if (l2>=0)
+					return isIn(p.vect(v1), l1, l2);
+				else
+					return isIn(p.vect(v1), l2+l1, 0);
+			}
+		}
+		
+		double det = v1.vect(v2) * (-v.vect(v1)*v2.dot(v) + v.vect(v2)*v1.dot(v) - v1.vect(v2)*v.dot(v));
+		
+		double t = (v1.vect(v2)*v2.dot(v)*p.dot(v1) - v1.vect(v2)*v1.dot(v)*p.vect(v2) + v1.vect(v2)*v1.vect(v2)*p.dot(v)) / det;
+		double t1 = (v.vect(v2)*v2.dot(v)*p.vect(v1) - (v.vect(v1)*v2.dot(v) + v1.vect(v2)*v.dot(v))*p.vect(v2) + v1.vect(v2)*v.vect(v2)*p.dot(v)) / det;
+		double t2 = ((-v.vect(v2)*v1.dot(v)+v.dot(v)*v1.vect(v2))*p.vect(v1) + v.vect(v1)*v1.dot(v)*p.vect(v2) - v.vect(v1)*v1.vect(v2)*p.dot(v)) / det;
+		
+		return isIn(t,0,1) && isIn(t1,0,1) && isIn(t2,0,1);
+	}
+	
+	public static boolean crossingCL (double x, double y, double r2, double xl, double yl, double w, double h)
+	{
+		double delta = r2*(w*w+h*h) - (w*(xl-x)+h*(yl-y))*(w*(xl-x)+h*(yl-y));
+		
+		if (delta < 0)
+			return false;
+		
+		double x1 = -(w*(xl-x)+h*(yl-y))/(w*w+h*h) - Math.sqrt(delta) / (w*w+h*h);
+		double x2 = -(w*(xl-x)+h*(yl-y))/(w*w+h*h) + Math.sqrt(delta) / (w*w+h*h);
+		
+		return intersect(x1,x2,0,1);
 	}
 }
